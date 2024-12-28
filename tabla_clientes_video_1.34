@@ -1,0 +1,61 @@
+-- CREANDO LA TABLA Y DEFINIENDO EL TIPO DE CADA DATO EN LAS COLUMNAS
+
+CREATE TABLE classicmodels.dim_clientes (
+	pk_cliente int,
+    nom_emp varchar(50),
+    nom_contacto_emp varchar (50),
+    apell_contacto_emp varchar (50),
+    direccion_emp varchar (120),
+    cod_postal varchar (20),
+    ciudad varchar (20),
+    pais varchar (15),
+    cod_representante int,
+    imp_limite_cred numeric(15,2),
+    PRIMARY KEY (pk_cliente)
+);
+-- toda la función completa que se va a agregar al final
+SELECT instr(lastNameFirstName, ',') as posicion_coma,
+		lastNameFirstName,
+        substr(lastNameFirstName,1,instr(lastNameFirstName, ',')-1) as nombre, -- -1 para quitar la coma que sale
+		substr(lastNameFirstName,instr(lastNameFirstName, ',')+1,99) as apellido, -- +1,99 sirve para que cuente hasta 99 caracteres después de la coma
+        concat(addressLine1,addressLine2) -- CONCAT, es para juntar los campos
+FROM raw_classiscmodels.customers;
+
+
+-- SEPARAR EL NOMBRE Y EL APELLIDO EN COLUMNAS SEPARADAS
+-- LA FUNCION INSTR() SIRVE EN QUE POSICION ESTÁ CIERTO CARACTER PARA CADA REGISTRO. 
+SELECT instr(lastNameFirstName, ',') as posicion_coma,
+		lastNameFirstName,
+        substr(lastNameFirstName,1,instr(lastNameFirstName, ',')-1) as nombre, -- -1 para quitar la coma que sale
+          substr(lastNameFirstName,instr(lastNameFirstName, ',')+1,99) as apellido -- +1,99 sirve para que cuente hasta 99 caracteres después de la coma
+FROM raw_classiscmodels.customers;
+
+
+-- JUNTAR DATOS DE LAS DIRECCIONES (USANDO CONCAT), cuando haya NULL; no va a correr bien la función
+SELECT 	addressLine1,
+		addressLine2,
+		concat(addressLine1,coalesce(addressLine2,'')) as dureccion_completa-- CONCAT, es para juntar los campos
+FROM raw_classiscmodels.customers;
+
+-- TRABAJANDO CON NULLS
+SELECT coalesce(addressLine2,''), -- SE QUITA EL NULL Y SE PONEN UN ESPACIO ( '' ) QUE QUIERE DECIR QUE NO TENGA NADA; PERO AYUDA PARA QUE NO NOS HAGA UN PROBLEMA AL TRABAJAR CON NULLS
+		addressline2
+FROM raw_classiscmodels.customers;
+
+-- INSERTANDO LOS DATOS EN LOS CAMPOS DE LA TABLA CLIENTES (VIDEO 1hr 34 min donde se hizo la carga de los datos)
+INSERT INTO dim_clientes
+SELECT 	customernumber,
+		customername,
+        substr(lastNameFirstName,1,instr(lastNameFirstName, ',')-1) as nombre, -- -1 para quitar la coma que sale
+		substr(lastNameFirstName,instr(lastNameFirstName, ',')+1,99) as apellido, -- +1,99 sirve para que cuente hasta 99 caracteres después de la coma
+        concat(addressLine1,coalesce(addressLine2,'')) as direccion, -- CONCAT, es para juntar los campos
+        postalcode,
+        city,
+        country,
+        salesRepEmployeeNumber,
+        creditLimit
+FROM raw_classiscmodels.customers;
+
+-- REVISANDO LOS REGISTROS
+SELECT *
+FROM dim_clientes;
